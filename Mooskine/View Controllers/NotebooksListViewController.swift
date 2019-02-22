@@ -28,7 +28,7 @@ class NotebooksListViewController: UIViewController, UITableViewDataSource {
         fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest,
                                                               managedObjectContext: dataController.viewContext,
                                                               sectionNameKeyPath: nil,
-                                                              cacheName: nil)
+                                                              cacheName: "notebooks")
         // conforms with fetched results controller delegate em set with self
         fetchedResultsController.delegate = self
         
@@ -187,10 +187,24 @@ extension NotebooksListViewController: NSFetchedResultsControllerDelegate {
         switch type {
         case .insert:
             tableView.insertRows(at: [newIndexPath!], with: .fade)
+            break
         case .delete:
             tableView.deleteRows(at: [indexPath!], with: .fade)
-        default:
             break
+        case .update:
+            tableView.reloadRows(at: [indexPath!], with: .fade)
+        case .move:
+            tableView.moveRow(at: indexPath!, to: newIndexPath!)
+        }
+    }
+    
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange sectionInfo: NSFetchedResultsSectionInfo, atSectionIndex sectionIndex: Int, for type: NSFetchedResultsChangeType) {
+        let indexSet = IndexSet(integer: sectionIndex)
+        switch type {
+        case .insert: tableView.insertSections(indexSet, with: .fade)
+        case .delete: tableView.deleteSections(indexSet, with: .fade)
+        case .update, .move:
+            fatalError("Invalid change type in controller(_:didChange:atSectionIndex:for:). Only .insert or .delete should be possible.")
         }
     }
 }
