@@ -25,22 +25,6 @@ class NotesListViewController: UIViewController {
         return df
     }()
 
-    fileprivate func setupFetchedResultsController() {
-        let fetchRequest: NSFetchRequest<Note> = Note.fetchRequest()
-        let predicate = NSPredicate(format: "notebook == %@", notebook)
-        fetchRequest.predicate = predicate
-        
-        let sortDescriptor = NSSortDescriptor(key: "creationDate", ascending: true)
-        fetchRequest.sortDescriptors = [sortDescriptor]
-        
-        listDataSource = ListDataSource(tableView: tableView, managedObjectContext: dataController.viewContext, fetchRequest: fetchRequest, cacheName: "\(notebook.name ?? "notebook")") { (cell, entity) in
-            cell.textPreviewLabel.text = entity.text
-            if let creationDate = entity.creationDate {
-                cell.dateLabel.text = self.dateFormatter.string(from: creationDate)
-            }
-        }
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.title = notebook.name
@@ -58,11 +42,22 @@ class NotesListViewController: UIViewController {
         }
     }
     
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
-        listDataSource.fetchedResultsController = nil
+    fileprivate func setupFetchedResultsController() {
+        let fetchRequest: NSFetchRequest<Note> = Note.fetchRequest()
+        let predicate = NSPredicate(format: "notebook == %@", notebook)
+        fetchRequest.predicate = predicate
+        
+        let sortDescriptor = NSSortDescriptor(key: "creationDate", ascending: true)
+        fetchRequest.sortDescriptors = [sortDescriptor]
+        
+        listDataSource = ListDataSource(tableView: tableView, managedObjectContext: dataController.viewContext, fetchRequest: fetchRequest, cacheName: "\(notebook.name ?? "notebook")") { (cell, entity) in
+            cell.textPreviewLabel.attributedText = entity.attributedText
+            if let creationDate = entity.creationDate {
+                cell.dateLabel.text = self.dateFormatter.string(from: creationDate)
+            }
+        }
     }
-
+    
     // -------------------------------------------------------------------------
     // MARK: - Actions
 
@@ -76,7 +71,7 @@ class NotesListViewController: UIViewController {
     // Adds a new `Note` to the end of the `notebook`'s `notes` array
     func addNote() {
         let note = Note(context: dataController.viewContext)
-        note.text = "New Note"
+        note.attributedText = NSAttributedString(string: "New Note")
         note.creationDate = Date()
         note.notebook = notebook
         try? dataController.viewContext.save()

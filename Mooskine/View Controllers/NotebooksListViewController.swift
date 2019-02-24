@@ -16,22 +16,6 @@ class NotebooksListViewController: UIViewController {
     var dataController: DataController!
     var listDataSource: ListDataSource<Notebook, NotebookCell>!
     
-    // Set Up fetched results controller
-    fileprivate func setUpFetchedResultsController() {
-        let fetchRequest: NSFetchRequest<Notebook> = Notebook.fetchRequest()
-        let sortDescriptor = NSSortDescriptor(key: "creationDate", ascending: false)
-        fetchRequest.sortDescriptors = [sortDescriptor]
-        
-        listDataSource = ListDataSource(tableView: tableView, managedObjectContext: dataController.viewContext, fetchRequest: fetchRequest, cacheName: "notebooks") { (cell, entity) in
-            cell.nameLabel.text = entity.name
-            
-            if let count = entity.notes?.count {
-                let pageString = count == 1 ? "page" : "pages"
-                cell.pageCountLabel.text = "\(count) \(pageString)"
-            }
-        }
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.titleView = UIImageView(image: #imageLiteral(resourceName: "toolbar-cow"))
@@ -48,10 +32,21 @@ class NotebooksListViewController: UIViewController {
             tableView.reloadRows(at: [indexPath], with: .fade)
         }
     }
-    
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
-        listDataSource.fetchedResultsController = nil
+
+    // Set Up fetched results controller
+    fileprivate func setUpFetchedResultsController() {
+        let fetchRequest: NSFetchRequest<Notebook> = Notebook.fetchRequest()
+        let sortDescriptor = NSSortDescriptor(key: "creationDate", ascending: false)
+        fetchRequest.sortDescriptors = [sortDescriptor]
+        
+        listDataSource = ListDataSource(tableView: tableView, managedObjectContext: dataController.viewContext, fetchRequest: fetchRequest, cacheName: "notebooks") { (cell, entity) in
+            cell.nameLabel.text = entity.name
+            
+            if let count = entity.notes?.count {
+                let pageString = count == 1 ? "page" : "pages"
+                cell.pageCountLabel.text = "\(count) \(pageString)"
+            }
+        }
     }
 
     // -------------------------------------------------------------------------
